@@ -28,15 +28,29 @@ class Huffman:
 
     def build_tree(self):
         # Task 2: Implementing build_tree() method
-        if not self.freq_table:
+        if not self.head:  # Handle case where linked list is empty
             return
 
-        # Build sorted linked list
-        sorted_freqs = sorted(self.freq_table.items(), key=lambda x: x[1])
-        for char, freq in sorted_freqs:
-            self.prepend_to_list(char, freq)
+        if self.head.next is None:  # Handle case where linked list has only one node
+            self.root = self.head
+            return
 
-        # Build Huffman tree
+        # Create two nodes from the first two nodes of the linked list
+        left = self.head
+        right = self.head.next
+        self.head = self.head.next.next
+
+        # Create a new node with combined frequency
+        combined_freq = left.freq + right.freq
+        merged_node = self.HuffmanNode(None, combined_freq, left=left, right=right)
+
+        # Set root of Huffman tree
+        self.root = merged_node
+
+        # Insert merged node back into the list
+        self.head = merged_node  # Update head to merged node
+
+        # Sort the remaining list
         while self.head.next is not None:
             # Remove two least frequent nodes
             left = self.head
@@ -48,10 +62,12 @@ class Huffman:
             merged_node = self.HuffmanNode(None, combined_freq, left=left, right=right)
 
             # Insert merged node back into the list
-            self.insert_sorted(merged_node)
+            current = self.root
+            while current.next is not None and current.next.freq < merged_node.freq:
+                current = current.next
+            merged_node.next = current.next
+            current.next = merged_node
 
-        # Set root of Huffman tree
-        self.root = self.head
 
     def encode(self, s):
         # Task 3: Implementing encode() method
